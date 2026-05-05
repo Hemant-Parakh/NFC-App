@@ -1,6 +1,11 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { ExternalLink, Link2 } from 'lucide-react'
+import { ExternalLink, Globe } from 'lucide-react'
+
+function getDomain(url) {
+  try { return new URL(url).hostname.replace('www.', '') }
+  catch { return url }
+}
 
 export default function LinkCard({ action, accentColor }) {
   const handleOpen = () => {
@@ -10,22 +15,36 @@ export default function LinkCard({ action, accentColor }) {
   return (
     <motion.button
       whileTap={{ scale: 0.97 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
       onClick={handleOpen}
-      className="w-full flex items-center gap-4 p-4 rounded-2xl bg-surface2 border border-white/5 active:bg-surface3 transition-colors text-left"
+      className="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-left"
+      style={{
+        background: 'rgba(18,24,32,0.95)',
+        border: '1px solid rgba(255,255,255,0.05)',
+      }}
     >
       <div
         className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ background: accentColor + '20' }}
+        style={{ background: accentColor + '18' }}
       >
-        <Link2 size={18} style={{ color: accentColor }} />
+        <Globe size={18} style={{ color: accentColor }} strokeWidth={2} />
       </div>
+
       <div className="flex-1 min-w-0">
-        <p className="text-text-primary text-sm font-semibold">{action.title}</p>
+        <p className="text-text-primary text-[14px] font-semibold">{action.title}</p>
         {action.url && (
-          <p className="text-text-muted text-xs mt-0.5 truncate">{action.url}</p>
+          <p className="text-[12px] mt-0.5 truncate" style={{ color: '#3D5066' }}>
+            {getDomain(action.url)}
+          </p>
         )}
       </div>
-      <ExternalLink size={15} className="text-text-muted flex-shrink-0" />
+
+      <div
+        className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: accentColor + '12' }}
+      >
+        <ExternalLink size={14} style={{ color: accentColor }} strokeWidth={2} />
+      </div>
     </motion.button>
   )
 }

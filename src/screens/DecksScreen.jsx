@@ -4,6 +4,15 @@ import { Plus, Search, X } from 'lucide-react'
 import DeckCard from '../components/DeckCard.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 
+const stagger = {
+  hidden: {},
+  show:   { transition: { staggerChildren: 0.05, delayChildren: 0.04 } },
+}
+const fadeUp = {
+  hidden: { opacity: 0, y: 10 },
+  show:   { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 380, damping: 34 } },
+}
+
 export default function DecksScreen({ decks, navigate, touchDeck }) {
   const [query, setQuery] = useState('')
 
@@ -14,61 +23,73 @@ export default function DecksScreen({ decks, navigate, touchDeck }) {
       )
     : decks
 
-  const openDeck = (id) => {
-    touchDeck(id)
-    navigate(`deck/${id}`)
-  }
+  const openDeck = id => { touchDeck(id); navigate(`deck/${id}`) }
 
   return (
-    <div className="px-5 pt-6 pb-4">
+    <div className="px-5 pt-7 pb-4">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-text-primary text-2xl font-bold tracking-tight">All Decks</h1>
-        <motion.button
-          whileTap={{ scale: 0.93 }}
-          onClick={() => navigate('create')}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-semibold text-sm bg-accent-blue text-bg"
+        <h1
+          className="font-extrabold leading-none"
+          style={{ fontSize: '26px', color: '#EEF3FF', letterSpacing: '-0.025em' }}
         >
-          <Plus size={15} />
+          All Decks
+        </h1>
+        <motion.button
+          whileTap={{ scale: 0.92 }}
+          transition={{ type: 'spring', stiffness: 600, damping: 28 }}
+          onClick={() => navigate('create')}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-[13px]"
+          style={{ background: '#4A9EFF', color: '#0A0E14' }}
+        >
+          <Plus size={14} strokeWidth={2.8} />
           New
         </motion.button>
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-surface border border-white/5 mb-6">
-        <Search size={16} className="text-text-muted flex-shrink-0" />
+      <div
+        className="flex items-center gap-3 px-4 py-3 rounded-2xl mb-6"
+        style={{ background: 'rgba(18,24,32,0.9)', border: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <Search size={15} style={{ color: '#3D5066' }} className="flex-shrink-0" />
         <input
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search decks…"
-          className="flex-1 text-sm bg-transparent"
+          className="flex-1 text-[14px] bg-transparent"
+          style={{ color: '#D0DCF0' }}
         />
         {query && (
-          <button onClick={() => setQuery('')}>
-            <X size={14} className="text-text-muted" />
-          </button>
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={() => setQuery('')}
+          >
+            <X size={14} style={{ color: '#3D5066' }} />
+          </motion.button>
         )}
       </div>
 
       {filtered.length === 0 ? (
         <EmptyState
-          icon="Search"
+          icon={query ? 'Search' : 'LayoutGrid'}
           title={query ? 'No results' : 'No decks yet'}
-          body={query ? `No decks match "${query}"` : 'Tap New to create your first deck.'}
+          body={query ? `Nothing matches "${query}"` : 'Tap New to create your first deck.'}
         />
       ) : (
-        <div className="grid grid-cols-2 gap-3">
-          {filtered.map((deck, i) => (
-            <motion.div
-              key={deck.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04, duration: 0.22 }}
-            >
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-2 gap-3"
+        >
+          {filtered.map(deck => (
+            <motion.div key={deck.id} variants={fadeUp}>
               <DeckCard deck={deck} onClick={() => openDeck(deck.id)} />
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   )

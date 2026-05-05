@@ -2,28 +2,39 @@ import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import BottomNav from './BottomNav.jsx'
 
+const pageVariants = {
+  initial: { opacity: 0, y: 10, filter: 'blur(2px)' },
+  in:      { opacity: 1, y: 0,  filter: 'blur(0px)' },
+  out:     { opacity: 0, y: -6, filter: 'blur(2px)' },
+}
+
+const pageTransition = {
+  type: 'spring',
+  stiffness: 380,
+  damping: 36,
+  mass: 0.8,
+}
+
 export default function Layout({ children, screen, navigate }) {
   return (
     <div className="flex flex-col min-h-dvh bg-bg">
-      {/* Safe area top */}
       <div className="safe-top" />
 
-      {/* Main scrollable content */}
       <main className="flex-1 scrollable pb-24">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={screen}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            variants={pageVariants}
+            initial="initial"
+            animate="in"
+            exit="out"
+            transition={pageTransition}
           >
             {children}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Bottom Nav */}
       <BottomNav screen={screen} navigate={navigate} />
     </div>
   )

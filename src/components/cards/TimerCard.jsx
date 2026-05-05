@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
-import { Timer, Play, Pause, RotateCcw } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Play, Pause, RotateCcw } from 'lucide-react'
 import { formatDuration } from '../../utils/helpers.js'
 
 export default function TimerCard({ action, accentColor }) {
@@ -36,66 +36,149 @@ export default function TimerCard({ action, accentColor }) {
   }
 
   const progress = 1 - remaining / total
-  const r = 36
-  const circ = 2 * Math.PI * r
+  const SIZE = 130
+  const R = 52
+  const CIRC = 2 * Math.PI * R
+  const mins = Math.floor(total / 60)
 
   return (
-    <div className="rounded-2xl bg-surface2 border border-white/5 p-4">
-      <div className="flex items-center gap-3 mb-4">
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: finished
+          ? `linear-gradient(135deg, ${accentColor}12, rgba(18,24,32,0.95))`
+          : 'rgba(18,24,32,0.95)',
+        border: `1px solid ${finished ? accentColor + '30' : 'rgba(255,255,255,0.05)'}`,
+        transition: 'background 0.5s, border-color 0.5s',
+      }}
+    >
+      {/* Card header */}
+      <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: accentColor + '20' }}
+          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: accentColor + '18' }}
         >
-          <Timer size={18} style={{ color: accentColor }} />
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={accentColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
         </div>
-        <div>
-          <p className="text-text-primary text-sm font-semibold">{action.title}</p>
-          <p className="text-text-muted text-xs">{Math.floor(total / 60)} min timer</p>
+        <div className="flex-1">
+          <p className="text-text-primary text-[14px] font-semibold">{action.title}</p>
+          <p className="text-[12px]" style={{ color: '#3D5066' }}>{mins} minute timer</p>
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-8">
-        {/* Circular progress */}
-        <div className="relative flex items-center justify-center">
-          <svg width="100" height="100" viewBox="0 0 100 100" className="-rotate-90">
-            <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+      {/* Ring + controls */}
+      <div className="flex flex-col items-center pb-5 pt-1">
+        {/* SVG ring */}
+        <div className="relative flex items-center justify-center mb-5">
+          <svg
+            width={SIZE}
+            height={SIZE}
+            viewBox={`0 0 ${SIZE} ${SIZE}`}
+            className="-rotate-90"
+          >
+            {/* Track */}
+            <circle
+              cx={SIZE / 2} cy={SIZE / 2} r={R}
+              fill="none"
+              stroke="rgba(255,255,255,0.05)"
+              strokeWidth="5"
+            />
+            {/* Glow copy (blur effect via filter) */}
             <motion.circle
-              cx="50" cy="50" r={r}
+              cx={SIZE / 2} cy={SIZE / 2} r={R}
               fill="none"
               stroke={accentColor}
-              strokeWidth="4"
+              strokeWidth="5"
               strokeLinecap="round"
-              strokeDasharray={circ}
-              animate={{ strokeDashoffset: circ * (1 - progress) }}
-              transition={{ duration: 0.5 }}
+              strokeDasharray={CIRC}
+              animate={{ strokeDashoffset: CIRC - progress * CIRC, opacity: 0.25 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              style={{ filter: `blur(4px)` }}
+            />
+            {/* Foreground arc */}
+            <motion.circle
+              cx={SIZE / 2} cy={SIZE / 2} r={R}
+              fill="none"
+              stroke={accentColor}
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeDasharray={CIRC}
+              animate={{ strokeDashoffset: CIRC - progress * CIRC }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
             />
           </svg>
-          <div className="absolute text-center">
-            <p className="text-text-primary text-xl font-bold tabular-nums leading-none">
+
+          {/* Time display */}
+          <div className="absolute flex flex-col items-center">
+            <motion.p
+              className="tabular-nums font-bold leading-none"
+              animate={{ scale: finished ? [1, 1.06, 1] : 1 }}
+              transition={{ duration: 0.4 }}
+              style={{
+                fontSize: '26px',
+                color: finished ? accentColor : '#E8EFF8',
+                letterSpacing: '-0.03em',
+              }}
+            >
               {formatDuration(remaining)}
-            </p>
-            {finished && <p className="text-[10px] mt-0.5" style={{ color: accentColor }}>Done!</p>}
+            </motion.p>
+            <AnimatePresence>
+              {finished && (
+                <motion.p
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="text-[11px] font-semibold mt-1 glow-pulse"
+                  style={{ color: accentColor }}
+                >
+                  Done!
+                </motion.p>
+              )}
+              {running && !finished && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-[11px] mt-1"
+                  style={{ color: '#3D5066' }}
+                >
+                  running
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
         {/* Controls */}
-        <div className="flex flex-col gap-3">
+        <div className="flex gap-3 px-5 w-full">
           <motion.button
             whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 600, damping: 30 }}
             onClick={() => { setRunning(v => !v); setFinished(false) }}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm text-bg"
-            style={{ background: accentColor }}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-semibold text-sm"
+            style={{ background: accentColor, color: '#0A0E14' }}
           >
-            {running ? <Pause size={16} /> : <Play size={16} />}
-            {running ? 'Pause' : 'Start'}
+            <motion.span
+              key={running ? 'pause' : 'play'}
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 600, damping: 25 }}
+            >
+              {running ? <Pause size={16} strokeWidth={2.5} /> : <Play size={16} strokeWidth={2.5} />}
+            </motion.span>
+            {running ? 'Pause' : finished ? 'Restart' : 'Start'}
           </motion.button>
+
           <motion.button
             whileTap={{ scale: 0.93 }}
+            transition={{ type: 'spring', stiffness: 600, damping: 30 }}
             onClick={reset}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl font-medium text-sm text-text-secondary bg-white/5 active:bg-white/10"
+            className="w-12 h-12 rounded-2xl flex items-center justify-center"
+            style={{ background: 'rgba(255,255,255,0.06)' }}
           >
-            <RotateCcw size={14} />
-            Reset
+            <RotateCcw size={16} style={{ color: '#5A6A7E' }} />
           </motion.button>
         </div>
       </div>

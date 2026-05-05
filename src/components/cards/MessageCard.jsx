@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
-import { MessageSquare, Copy, Check, Send } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { MessageSquare, Copy, Check } from 'lucide-react'
 
 export default function MessageCard({ action, accentColor }) {
   const [copied, setCopied] = useState(false)
@@ -12,35 +12,61 @@ export default function MessageCard({ action, accentColor }) {
   }
 
   return (
-    <div className="rounded-2xl bg-surface2 border border-white/5 p-4">
-      <div className="flex items-center gap-3 mb-3">
+    <div
+      className="rounded-2xl p-4"
+      style={{
+        background: 'rgba(18,24,32,0.95)',
+        border: '1px solid rgba(255,255,255,0.05)',
+      }}
+    >
+      <div className="flex items-center gap-3.5 mb-3.5">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: accentColor + '20' }}
+          style={{ background: accentColor + '18' }}
         >
-          <MessageSquare size={18} style={{ color: accentColor }} />
+          <MessageSquare size={17} style={{ color: accentColor }} strokeWidth={2} />
         </div>
-        <p className="text-text-primary text-sm font-semibold">{action.title}</p>
+        <p className="text-text-primary text-[14px] font-semibold">{action.title}</p>
       </div>
 
-      <div className="rounded-xl p-3 bg-white/5 mb-3">
-        <p className="text-text-secondary text-sm leading-relaxed whitespace-pre-wrap">
-          {action.content || <span className="text-text-muted italic">No message</span>}
+      {/* Message bubble */}
+      <div
+        className="rounded-2xl rounded-tl-sm px-4 py-3 mb-4"
+        style={{
+          background: `linear-gradient(135deg, ${accentColor}14, ${accentColor}08)`,
+          border: `1px solid ${accentColor}20`,
+        }}
+      >
+        <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: '#A0B0C4' }}>
+          {action.content || <span style={{ color: '#3D5066', fontStyle: 'italic' }}>No message</span>}
         </p>
       </div>
 
       <motion.button
         whileTap={{ scale: 0.97 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 35 }}
         onClick={copy}
-        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm"
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm"
         style={{
-          background: copied ? 'rgba(52,211,153,0.15)' : accentColor + '18',
+          background: copied ? 'rgba(52,211,153,0.12)' : accentColor + '15',
           color: copied ? '#34D399' : accentColor,
-          border: `1px solid ${copied ? 'rgba(52,211,153,0.25)' : accentColor + '30'}`,
+          border: `1px solid ${copied ? 'rgba(52,211,153,0.2)' : accentColor + '25'}`,
+          transition: 'background 0.2s, color 0.2s, border-color 0.2s',
         }}
       >
-        {copied ? <Check size={15} /> : <Copy size={15} />}
-        {copied ? 'Copied!' : 'Copy message'}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            key={copied ? 'done' : 'copy'}
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.7, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="flex items-center gap-2"
+          >
+            {copied ? <Check size={15} strokeWidth={2.5} /> : <Copy size={15} />}
+            {copied ? 'Copied!' : 'Copy message'}
+          </motion.span>
+        </AnimatePresence>
       </motion.button>
     </div>
   )
