@@ -1,95 +1,98 @@
 # Install TapDeck on your Pixel 10 Pro
 
-There are **two ways** to install TapDeck on Android. Pick whichever fits.
+TapDeck runs as a **self-contained Android app**. The whole web app is bundled inside the APK, so once installed there's no server, no internet connection, no accounts — everything works fully offline on your phone. All your decks are stored locally.
+
+There are three install paths. Pick whichever is easiest for you.
 
 ---
 
-## Option 1 — Install as a PWA (easiest, no developer tools)
+## Path A — Download the prebuilt APK (no developer tools needed) ✅
 
-This is the simplest path. The result is a real Android app with its own icon, fullscreen UI, splash screen, and offline support. It behaves like any installed app.
+This is the easiest. GitHub Actions builds an APK automatically every time the repo is updated.
 
 ### Steps
 
-1. **Host the app somewhere with HTTPS.** Any of these is fine:
-   - **Vercel** — `npx vercel --prod` from the project root
-   - **Netlify** — drag the `dist/` folder into netlify.app/drop
-   - **GitHub Pages** — push `dist/` to a `gh-pages` branch
-   - **Cloudflare Pages** — connect the repo, build with `npm run build`
-2. **Open the deployed URL in Chrome** on your Pixel 10 Pro.
-3. Chrome will show an **"Install app"** prompt in the address bar, or in the ⋮ menu.
-4. Tap **Install**. TapDeck appears on your home screen like a native app.
+1. Open the repository on GitHub → **Releases** tab → grab the latest `TapDeck-debug.apk`.
+   - Or: **Actions** tab → click the most recent successful build → scroll to **Artifacts** → download `TapDeck-debug-apk.zip` → unzip it.
+2. Transfer the APK to your Pixel 10 Pro (USB cable, Google Drive, email, AirDrop-equivalent — anything works).
+3. On your Pixel, tap the APK file.
+4. Android will ask you to enable **"Install unknown apps"** for the app you're opening it from (Files, Drive, Chrome, etc.). Tap **Settings** → enable the toggle → go back.
+5. Tap **Install**. Done — TapDeck is now a real installed app with its own icon.
 
-That's it. No APK, no Play Store, no signing.
-
-### Why this works
-- The PWA manifest declares maskable icons, standalone display mode, and a theme color → Chrome treats it as installable
-- The service worker (`vite-plugin-pwa`) caches the app shell → works offline
-- App shortcuts let you long-press the icon for "New deck" and "All decks" quick actions
-- The launch is full-screen with no Chrome chrome — it really feels native on Pixel
+No Play Store account, no hosting, no developer setup needed.
 
 ---
 
-## Option 2 — Build a real Android APK (advanced)
+## Path B — Build the APK locally (Android Studio)
 
-If you want an actual `.apk` file you can sideload or publish to Play Store, use **Capacitor**. The project is already configured.
+If you want to modify the app and build your own APK.
 
 ### Prerequisites
-- Node.js 18+ (already have it)
-- Android Studio (download from developer.android.com/studio)
-- Android SDK 33+ (Android Studio installs this)
-- Java 17 (Android Studio bundles it)
+- Node.js 20+
+- Android Studio (download from developer.android.com/studio) — it bundles the Android SDK
+- Java 17 (Android Studio brings its own copy)
 
-### Build steps
+### Steps
 
 ```bash
-# 1. Install deps including Capacitor
+git clone <repo-url>
+cd NFC-App
 npm install
-
-# 2. Build the web app
 npm run build
-
-# 3. Initialize the Android project (one-time)
-npm run android:init
-
-# 4. Sync the latest web build into the Android project
-npm run android:sync
-
-# 5. Open in Android Studio
-npm run android:open
+npx cap sync android
+npm run android:open       # opens Android Studio
 ```
 
 In Android Studio:
-1. Wait for Gradle sync to finish.
-2. Connect your Pixel 10 Pro via USB (enable Developer Options → USB Debugging first).
-3. Click ▶ **Run**, select your Pixel as the target, and the APK installs and launches directly.
+1. Wait for Gradle sync to finish (first time only — takes a few minutes).
+2. Plug your Pixel in via USB. Enable Developer Options → USB Debugging on your phone if you haven't already (Settings → About phone → tap Build number 7 times → Developer options → enable USB debugging).
+3. Click ▶ **Run** → pick your Pixel → app installs and launches.
 
-To build a signed APK for distribution:
-- **Build** menu → **Generate Signed Bundle / APK** → APK → create or pick a keystore → build release variant.
+To build a standalone APK without USB:
+- **Build** menu → **Build Bundle(s) / APK(s)** → **Build APK(s)** → wait → click **locate** in the toast → grab the APK file → copy to phone → install.
 
-### Updating after code changes
-After any web code change, just run:
+---
+
+## Path C — Build the APK locally without Android Studio (CLI only)
+
+Faster than Path B if you've already got the Android SDK installed (e.g. via `apt install android-sdk` or the command-line tools).
+
 ```bash
-npm run android:sync
+export ANDROID_SDK_ROOT=/path/to/android-sdk
+npm install
+npm run build
+npx cap sync android
+cd android
+./gradlew assembleDebug
+# APK appears at android/app/build/outputs/apk/debug/app-debug.apk
 ```
-Then re-run from Android Studio. No need to re-add the platform.
+
+Then transfer that APK to your phone and install as in Path A step 3–5.
 
 ---
 
-## Recommended: just use Option 1
+## What you get
 
-Unless you specifically need an APK file or Play Store distribution, **PWA install on Chrome** is the better path. It's the same UX as a real app, updates automatically when you redeploy, and doesn't need Android Studio.
+Once installed:
+- Real Android app with its own icon (stacked-cards design)
+- Adaptive icon — works correctly with Material You theming on Pixel
+- Full-screen launch (no browser chrome)
+- App shortcuts: long-press the home icon for "New deck" / "All decks"
+- All data stored locally on the device — no accounts, no sync, no tracking
+- Works completely offline
 
----
+## Updating
+
+Every time the repo is updated, a fresh `TapDeck-debug.apk` shows up on the Releases page. Just download and install over the existing app — your data is preserved.
 
 ## Troubleshooting
 
-**Chrome won't show the Install button**
-- Make sure the site is on HTTPS (localhost is also OK).
-- Reload after the service worker registers.
-- The manifest must validate — visit `chrome://inspect/#service-workers` to debug.
+**"App not installed" error**
+- Make sure you uninstalled any previous version first if you switched signing keys.
+- Check Settings → Apps → Special access → Install unknown apps → enable for your browser/Files app.
 
-**Icons look cropped on the home screen**
-- This is the Android adaptive icon system. The manifest already declares maskable variants (`icon-maskable-*.png`) so this should be handled correctly.
+**Icon looks like a generic Android one**
+- Force-restart launcher (clear cache for "Pixel Launcher") or reboot the phone. The first time the adaptive icon takes a few seconds to register.
 
-**App opens in Chrome instead of fullscreen**
-- Long-press the home-screen icon → if there's no "TapDeck" but only "Chrome", reinstall via Chrome menu → "Install app".
+**App won't open / shows blank screen**
+- This shouldn't happen, but if it does, uninstall + reinstall. Web assets are bundled in the APK, so there's nothing to debug network-wise.
