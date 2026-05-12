@@ -49,21 +49,27 @@ export default function DeckCard({ deck, onClick, compact = false }) {
       whileTap={{ scale: 0.96 }}
       transition={{ type: 'spring', stiffness: 500, damping: 35 }}
       onClick={onClick}
-      className="flex flex-col w-full text-left rounded-3xl overflow-hidden"
+      className="relative flex flex-col w-full text-left rounded-3xl overflow-hidden"
       style={{
-        background: 'linear-gradient(160deg, rgba(26,34,50,0.9) 0%, rgba(18,24,32,0.95) 100%)',
+        background: 'linear-gradient(160deg, rgba(28,36,52,0.95) 0%, rgba(16,22,30,0.95) 100%)',
         border: '1px solid rgba(255,255,255,0.06)',
-        boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
+        boxShadow: `0 4px 20px rgba(0,0,0,0.35), 0 0 0 0 ${color}, inset 0 1px 0 rgba(255,255,255,0.04)`,
       }}
     >
       {/* Colored top accent strip */}
       <div
-        className="w-full flex-shrink-0"
+        className="w-full flex-shrink-0 relative"
         style={{
           height: '3px',
-          background: `linear-gradient(90deg, ${color} 0%, ${color}50 100%)`,
+          background: `linear-gradient(90deg, ${color} 0%, ${color}40 100%)`,
         }}
-      />
+      >
+        {/* glow under strip */}
+        <div
+          className="absolute left-0 right-0 -bottom-2 h-3 blur-md opacity-50 pointer-events-none"
+          style={{ background: `linear-gradient(90deg, ${color}40, transparent)` }}
+        />
+      </div>
 
       <div className="p-4 flex flex-col gap-3">
         {/* Icon */}

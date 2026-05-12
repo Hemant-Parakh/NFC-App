@@ -83,12 +83,28 @@ export default function HomeScreen({ decks, navigate, touchDeck }) {
         transition={{ type: 'spring', stiffness: 320, damping: 34 }}
         className="px-5 mb-8"
       >
-        <p className="text-[13px] font-semibold mb-1.5" style={{ color: '#3D5066' }}>
-          {greeting}
-        </p>
+        <div className="flex items-center gap-2 mb-2">
+          <motion.div
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.05 }}
+            className="w-2 h-2 rounded-full"
+            style={{ background: '#4A9EFF', boxShadow: '0 0 12px rgba(74,158,255,0.6)' }}
+          />
+          <p className="text-[12px] font-semibold uppercase tracking-[0.1em]" style={{ color: '#5A6A7E' }}>
+            {greeting}
+          </p>
+        </div>
         <h1
-          className="font-extrabold leading-none mb-2"
-          style={{ fontSize: '30px', color: '#EEF3FF', letterSpacing: '-0.03em' }}
+          className="font-extrabold leading-none mb-2.5"
+          style={{
+            fontSize: '32px',
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #B8C8DC 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            letterSpacing: '-0.035em',
+          }}
         >
           TapDeck
         </h1>

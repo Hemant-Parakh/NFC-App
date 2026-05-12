@@ -7,20 +7,76 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: [
+        'icon-192.png',
+        'icon-512.png',
+        'icon-maskable-192.png',
+        'icon-maskable-512.png',
+        'apple-touch-icon.png',
+      ],
       manifest: {
         name: 'TapDeck',
         short_name: 'TapDeck',
-        description: 'One tap. Right routine.',
+        description: 'One tap. Right routine. A beautiful launcher for your everyday modes.',
         theme_color: '#0A0E14',
         background_color: '#0A0E14',
         display: 'standalone',
+        display_override: ['standalone', 'minimal-ui'],
         orientation: 'portrait',
         start_url: '/',
+        scope: '/',
+        lang: 'en',
+        categories: ['productivity', 'lifestyle', 'utilities'],
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
-        ]
-      }
-    })
-  ]
+          { src: '/icon-192.png',          sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png',          sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+        shortcuts: [
+          {
+            name: 'New deck',
+            short_name: 'New',
+            description: 'Create a new deck',
+            url: '/#/create',
+            icons: [{ src: '/icon-192.png', sizes: '192x192' }],
+          },
+          {
+            name: 'All decks',
+            short_name: 'Decks',
+            description: 'Browse all decks',
+            url: '/#/decks',
+            icons: [{ src: '/icon-192.png', sizes: '192x192' }],
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,png,svg,ico,webmanifest}'],
+        navigateFallback: '/index.html',
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+          },
+        ],
+      },
+    }),
+  ],
+  build: {
+    target: 'es2020',
+    cssMinify: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react:    ['react', 'react-dom'],
+          motion:   ['framer-motion'],
+          icons:    ['lucide-react'],
+        },
+      },
+    },
+  },
 })

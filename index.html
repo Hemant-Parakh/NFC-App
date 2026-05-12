@@ -2,18 +2,75 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, user-scalable=no" />
+
+    <!-- Theme + status bar -->
+    <meta name="theme-color" content="#0A0E14" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#0A0E14" />
+    <meta name="color-scheme" content="dark" />
+
+    <!-- iOS PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="TapDeck" />
-    <meta name="description" content="One tap. Right routine." />
-    <link rel="icon" href="/icon-192.png" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
-    <title>TapDeck</title>
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+
+    <!-- SEO / share -->
+    <meta name="description" content="One tap. Right routine. TapDeck is a beautiful launcher for your everyday modes — Desk, Bed, Kitchen, Travel and more." />
+    <meta property="og:title" content="TapDeck — One tap. Right routine." />
+    <meta property="og:description" content="A beautiful one-tap routine launcher for repeated real-life situations." />
+    <meta property="og:type" content="website" />
+
+    <title>TapDeck — One tap. Right routine.</title>
+
+    <style>
+      /* Critical: prevent flash of white before app mounts */
+      html, body { background: #0A0E14; }
+      #root { min-height: 100dvh; }
+      .boot-loader {
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #0A0E14;
+        z-index: 9999;
+        transition: opacity 0.25s ease-out;
+      }
+      .boot-loader.hidden { opacity: 0; pointer-events: none; }
+      .boot-dot {
+        width: 36px; height: 36px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #4A9EFF, #6BAFFF);
+        box-shadow: 0 0 32px rgba(74,158,255,0.4);
+        animation: bootPulse 1.4s ease-in-out infinite;
+      }
+      @keyframes bootPulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50%       { transform: scale(0.85); opacity: 0.6; }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div class="boot-loader" id="boot-loader"><div class="boot-dot"></div></div>
+    <script>
+      // Hide boot loader once React mounts
+      const obs = new MutationObserver(() => {
+        const root = document.getElementById('root');
+        if (root && root.children.length > 0) {
+          const loader = document.getElementById('boot-loader');
+          if (loader) {
+            loader.classList.add('hidden');
+            setTimeout(() => loader.remove(), 300);
+          }
+          obs.disconnect();
+        }
+      });
+      obs.observe(document.getElementById('root'), { childList: true });
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
