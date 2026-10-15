@@ -1,19 +1,28 @@
 import { useState, useCallback, useEffect } from 'react'
 import { loadDecks, saveDecks } from '../utils/storage.js'
-import { createSampleDecks } from '../data/sampleDecks.js'
 import { generateId } from '../utils/helpers.js'
 
-export function useDecks() {
-  const [decks, setDecks] = useState(() => {
-    const stored = loadDecks()
-    return stored ?? createSampleDecks()
-  })
+// `version` lets callers force a reload from storage (after import / clear).
+export function useDecks(profileId, version = 0) {
+  const key = `${profileId}:${version}`
+  const [state, setState] = useState(() => ({ key, pid: profileId, decks: loadDecks(profileId) ?? [] }))
+
+  // Switching profile swaps the whole deck list during render, so the previous
+  // profile's decks are never written into the new profile's storage.
+  let current = state
+  if (state.key !== key) {
+    current = { key, pid: profileId, decks: loadDecks(profileId) ?? [] }
+    setState(current)
+  }
+  const { decks } = current
 
   useEffect(() => {
-    saveDecks(decks)
-  }, [decks])
+    saveDecks(state.pid, state.decks)
+  }, [state])
 
-  const getDeck = useCallback((id) => decks.find(d => d.id === id), [decks])
+  const mutate = useCallback(fn => setState(s => ({ ...s, decks: fn(s.decks) })), [])
+
+  const getDeck = useCallback(id => decks.find(d => d.id === id), [decks])
 
   const createDeck = useCallback((data) => {
     const deck = {
@@ -27,48 +36,41 @@ export function useDecks() {
       createdAt: Date.now(),
       actions: data.actions || [],
     }
-    setDecks(prev => [deck, ...prev])
+    mutate(prev => [deck, ...prev])
     return deck.id
-  }, [])
+  }, [mutate])
 
   const updateDeck = useCallback((id, updates) => {
-    setDecks(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d))
-  }, [])
+    mutate(prev => prev.map(d => (d.id === id ? { ...d, ...updates } : d)))
+  }, [mutate])
 
   const deleteDeck = useCallback((id) => {
-    setDecks(prev => prev.filter(d => d.id !== id))
-  }, [])
+    mutate(prev => prev.filter(d => d.id !== id))
+  }, [mutate])
 
   const touchDeck = useCallback((id) => {
-    setDecks(prev => prev.map(d => d.id === id ? { ...d, lastOpened: Date.now() } : d))
-  }, [])
+    mutate(prev => prev.map(d => (d.id === id ? { ...d, lastOpened: Date.now() } : d)))
+  }, [mutate])
 
   const toggleFavorite = useCallback((id) => {
-    setDecks(prev => prev.map(d => d.id === id ? { ...d, isFavorite: !d.isFavorite } : d))
-  }, [])
+    mutate(prev => prev.map(d => (d.id === id ? { ...d, isFavorite: !d.isFavorite } : d)))
+  }, [mutate])
 
-  const reorderActions = useCallback((deckId, actions) => {
-    setDecks(prev => prev.map(d => d.id === deckId ? { ...d, actions } : d))
-  }, [])
+  return { decks, getDeck, createDeck, updateDeck, deleteDeck, touchDeck, toggleFavorite }
+}
 
-  const recent = [...decks]
-    .filter(d => d.lastOpened)
-    .sort((a, b) => b.lastOpened - a.lastOpened)
-    .slice(0, 4)
-
-  const favorites = decks.filter(d => d.isFavorite)
-
-  return {
-    decks,
-    setDecks,
-    getDeck,
-    createDeck,
-    updateDeck,
-    deleteDeck,
-    touchDeck,
-    toggleFavorite,
-    reorderActions,
-    recent,
-    favorites,
+export function copyDeckToProfile(deck, targetProfileId) {
+  const clone = {
+    ...deck,
+    id: generateId(),
+    isFavorite: false,
+    lastOpened: null,
+    createdAt: Date.now(),
+    actions: deck.actions.map(a => ({
+      ...a,
+      id: generateId(),
+      ...(a.items ? { items: a.items.map(i => ({ ...i, id: generateId(), checked: false })) } : {}),
+    })),
   }
+  saveDecks(targetProfileId, [clone, ...(loadDecks(targetProfileId) ?? [])])
 }

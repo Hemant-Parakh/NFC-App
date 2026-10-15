@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import * as Icons from 'lucide-react'
 import { ArrowLeft, Edit2, Heart, Share2, Link2, Copy, Check, Trash2 } from 'lucide-react'
 import ActionCard from '../components/ActionCard.jsx'
+import ProfileAvatar from '../components/ProfileAvatar.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import { accentHex, getDeckUrl } from '../utils/helpers.js'
 
@@ -15,10 +16,11 @@ const slideUp = {
   show:   { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 380, damping: 34, mass: 0.8 } },
 }
 
-export default function DeckScreen({ deck, navigate, updateDeck, deleteDeck, toggleFavorite }) {
+export default function DeckScreen({ deck, navigate, updateDeck, deleteDeck, toggleFavorite, otherProfiles = [], onCopyToProfile }) {
   const [showShare, setShowShare]             = useState(false)
   const [copied, setCopied]                   = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [copiedTo, setCopiedTo]               = useState([])
 
   if (!deck) {
     return (
@@ -174,6 +176,38 @@ export default function DeckScreen({ deck, navigate, updateDeck, deleteDeck, tog
               <p className="text-[11px] text-center mt-3 leading-relaxed" style={{ color: '#3D5066' }}>
                 Pin to home screen · write to NFC tag · generate QR
               </p>
+
+              {otherProfiles.length > 0 && (
+                <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#3D5066' }}>
+                    Copy to another profile
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {otherProfiles.map(p => {
+                      const done = copiedTo.includes(p.id)
+                      return (
+                        <motion.button
+                          key={p.id}
+                          whileTap={{ scale: 0.94 }}
+                          disabled={done}
+                          onClick={() => { onCopyToProfile(deck, p); setCopiedTo(ids => [...ids, p.id]) }}
+                          className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full"
+                          style={{
+                            background: done ? 'rgba(52,211,153,0.1)' : 'rgba(255,255,255,0.04)',
+                            border: `1px solid ${done ? 'rgba(52,211,153,0.25)' : 'rgba(255,255,255,0.07)'}`,
+                          }}
+                        >
+                          <ProfileAvatar profile={p} size={26} />
+                          <span className="text-[12px] font-semibold" style={{ color: done ? '#34D399' : '#B8C8DC' }}>
+                            {done ? 'Copied' : p.name}
+                          </span>
+                          {done && <Check size={12} strokeWidth={3} style={{ color: '#34D399' }} />}
+                        </motion.button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

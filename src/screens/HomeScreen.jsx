@@ -2,6 +2,7 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Pin, ArrowRight } from 'lucide-react'
 import DeckCard from '../components/DeckCard.jsx'
+import ProfileAvatar from '../components/ProfileAvatar.jsx'
 import SectionLabel from '../components/SectionLabel.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import { getGreeting, accentHex } from '../utils/helpers.js'
@@ -64,8 +65,10 @@ function ShelfCard({ deck, onClick }) {
   )
 }
 
-export default function HomeScreen({ decks, navigate, touchDeck }) {
+export default function HomeScreen({ decks, navigate, touchDeck, profile, profileCount = 1, onOpenProfiles }) {
   const greeting = getGreeting()
+  const accent = accentHex(profile?.color)
+  const showName = profile?.name && profile.name !== 'You'
   const favorites  = decks.filter(d => d.isFavorite)
   const recent     = [...decks].filter(d => d.lastOpened).sort((a, b) => b.lastOpened - a.lastOpened).slice(0, 5)
   const allOthers  = decks.filter(d => !d.isFavorite && !recent.find(r => r.id === d.id))
@@ -83,16 +86,18 @@ export default function HomeScreen({ decks, navigate, touchDeck }) {
         transition={{ type: 'spring', stiffness: 320, damping: 34 }}
         className="px-5 mb-8"
       >
+       <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
         <div className="flex items-center gap-2 mb-2">
           <motion.div
             initial={{ scale: 0, rotate: -45 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: 'spring', stiffness: 400, damping: 18, delay: 0.05 }}
-            className="w-2 h-2 rounded-full"
-            style={{ background: '#4A9EFF', boxShadow: '0 0 12px rgba(74,158,255,0.6)' }}
+            className="w-2 h-2 rounded-full flex-shrink-0"
+            style={{ background: accent, boxShadow: `0 0 12px ${accent}99` }}
           />
-          <p className="text-[12px] font-semibold uppercase tracking-[0.1em]" style={{ color: '#5A6A7E' }}>
-            {greeting}
+          <p className="text-[12px] font-semibold uppercase tracking-[0.1em] truncate" style={{ color: '#5A6A7E' }}>
+            {greeting}{showName ? `, ${profile.name}` : ''}
           </p>
         </div>
         <h1
@@ -111,6 +116,26 @@ export default function HomeScreen({ decks, navigate, touchDeck }) {
         <p className="text-[14px] leading-snug" style={{ color: '#5A6A7E' }}>
           Pick a mode for what you're doing right now.
         </p>
+        </div>
+
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          transition={{ type: 'spring', stiffness: 600, damping: 28 }}
+          onClick={onOpenProfiles}
+          className="relative flex-shrink-0 mt-1"
+          aria-label="Switch profile"
+        >
+          <ProfileAvatar profile={profile} size={42} ring />
+          {profileCount > 1 && (
+            <span
+              className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[10px] font-bold"
+              style={{ background: '#1A2232', color: '#B8C8DC', border: '2px solid #0A0E14' }}
+            >
+              {profileCount}
+            </span>
+          )}
+        </motion.button>
+       </div>
       </motion.div>
 
       {/* ── Pinned shelf ── */}
@@ -163,7 +188,7 @@ export default function HomeScreen({ decks, navigate, touchDeck }) {
               <button
                 onClick={() => navigate('decks')}
                 className="text-[11px] font-semibold flex items-center gap-1"
-                style={{ color: '#4A9EFF' }}
+                style={{ color: accent }}
               >
                 See all <ArrowRight size={11} />
               </button>
@@ -192,7 +217,7 @@ export default function HomeScreen({ decks, navigate, touchDeck }) {
               whileTap={{ scale: 0.96 }}
               onClick={() => navigate('create')}
               className="flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-sm"
-              style={{ background: '#4A9EFF', color: '#0A0E14' }}
+              style={{ background: accent, color: '#0A0E14' }}
             >
               <Plus size={16} strokeWidth={2.5} />
               Create Deck
@@ -210,9 +235,9 @@ export default function HomeScreen({ decks, navigate, touchDeck }) {
             onClick={() => navigate('create')}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-[14px]"
             style={{
-              background: 'rgba(74,158,255,0.08)',
-              color: '#4A9EFF',
-              border: '1px solid rgba(74,158,255,0.16)',
+              background: accent + '14',
+              color: accent,
+              border: `1px solid ${accent}29`,
             }}
           >
             <Plus size={16} strokeWidth={2.5} />

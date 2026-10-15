@@ -9,7 +9,7 @@ const tabs = [
   { id: 'settings',  icon: Settings,    label: 'Settings' },
 ]
 
-export default function BottomNav({ screen, navigate }) {
+export default function BottomNav({ screen, navigate, accent = '#4A9EFF' }) {
   const activeTab = tabs.find(t => screen?.startsWith(t.id))?.id ?? 'home'
 
   return (
@@ -34,9 +34,9 @@ export default function BottomNav({ screen, navigate }) {
                   layoutId="nav-bg"
                   className="absolute inset-0 rounded-2xl"
                   style={{
-                    background: 'linear-gradient(180deg, rgba(74,158,255,0.12), rgba(74,158,255,0.04))',
-                    border: '1px solid rgba(74,158,255,0.18)',
-                    boxShadow: '0 2px 12px rgba(74,158,255,0.18)',
+                    background: `linear-gradient(180deg, ${accent}1F, ${accent}0A)`,
+                    border: `1px solid ${accent}2E`,
+                    boxShadow: `0 2px 12px ${accent}2E`,
                   }}
                   transition={{ type: 'spring', stiffness: 500, damping: 38, mass: 0.7 }}
                 />
@@ -51,13 +51,13 @@ export default function BottomNav({ screen, navigate }) {
               >
                 <Icon
                   size={20}
-                  style={active ? { color: '#4A9EFF' } : { color: '#3D5066' }}
+                  style={{ color: active ? accent : '#3D5066' }}
                   strokeWidth={active ? 2.3 : 1.7}
                 />
               </motion.div>
               <span
                 className="text-[10px] font-semibold tracking-wide leading-none relative"
-                style={{ color: active ? '#4A9EFF' : '#3D5066' }}
+                style={{ color: active ? accent : '#3D5066' }}
               >
                 {label}
               </span>

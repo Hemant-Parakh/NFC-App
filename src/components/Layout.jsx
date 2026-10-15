@@ -15,7 +15,7 @@ const pageTransition = {
   mass: 0.8,
 }
 
-export default function Layout({ children, screen, navigate }) {
+export default function Layout({ children, screen, pageKey, navigate, accent }) {
   return (
     <div className="flex flex-col min-h-dvh bg-bg">
       <div className="safe-top" />
@@ -23,7 +23,7 @@ export default function Layout({ children, screen, navigate }) {
       <main className="flex-1 scrollable pb-24">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
-            key={screen}
+            key={pageKey ?? screen}
             variants={pageVariants}
             initial="initial"
             animate="in"
@@ -35,7 +35,7 @@ export default function Layout({ children, screen, navigate }) {
         </AnimatePresence>
       </main>
 
-      <BottomNav screen={screen} navigate={navigate} />
+      <BottomNav screen={screen} navigate={navigate} accent={accent} />
     </div>
   )
 }
