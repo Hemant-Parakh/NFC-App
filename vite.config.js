@@ -3,6 +3,12 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify({
+      code: Number(process.env.TAPDECK_VERSION_CODE || 0),
+      name: process.env.TAPDECK_VERSION_NAME || 'dev',
+    }),
+  },
   plugins: [
     react(),
     VitePWA({

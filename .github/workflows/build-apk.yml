@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+env:
+  # Every build gets a higher versionCode, so Android accepts it as an update.
+  TAPDECK_VERSION_CODE: ${{ github.run_number }}
+  TAPDECK_VERSION_NAME: 1.2.${{ github.run_number }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,6 +20,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Require signing password
+        env:
+          TAPDECK_KEYSTORE_PASSWORD: ${{ secrets.TAPDECK_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$TAPDECK_KEYSTORE_PASSWORD" ]; then
+            echo "::error title=Signing secret missing::Add the repository secret TAPDECK_KEYSTORE_PASSWORD (Settings → Secrets and variables → Actions). Every APK must be signed with the same key to update the installed app."
+            exit 1
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -43,40 +57,38 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Make gradlew executable
-        run: chmod +x android/gradlew
-
-      - name: Build debug APK
+      - name: Build signed release APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+        env:
+          TAPDECK_KEYSTORE_PASSWORD: ${{ secrets.TAPDECK_KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
 
-      - name: Rename APK
+      - name: Collect APK
         run: |
           mkdir -p artifacts
-          cp android/app/build/outputs/apk/debug/app-debug.apk artifacts/TapDeck-debug.apk
+          cp android/app/build/outputs/apk/release/app-release.apk artifacts/TapDeck.apk
+          "$ANDROID_HOME"/build-tools/*/apksigner verify --print-certs artifacts/TapDeck.apk | head -3
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TapDeck-debug-apk
-          path: artifacts/TapDeck-debug.apk
+          name: TapDeck-${{ env.TAPDECK_VERSION_NAME }}
+          path: artifacts/TapDeck.apk
           retention-days: 90
 
-      - name: Create / update release (main branch only)
-        if: github.ref == 'refs/heads/main'
+      - name: Release notes from commit
+        run: git log -1 --format=%B | grep -viE '^(Co-Authored-By|Claude-Session|Signed-off-by):' > artifacts/notes.md
+
+      # The installed app checks GitHub's "latest release" for updates.
+      - name: Publish release (default branch only)
+        if: github.ref_name == github.event.repository.default_branch
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: TapDeck Latest Build
-          body: |
-            Latest debug build of TapDeck for Android.
-
-            **How to install on your Pixel:**
-            1. Download `TapDeck-debug.apk` below
-            2. On your Pixel, open the file (allow "Install unknown apps" from your browser/file manager when prompted)
-            3. Tap Install — done
-
-            The app runs fully offline. No accounts, no server, all data is stored in localStorage on your device.
-          files: artifacts/TapDeck-debug.apk
-          prerelease: false
+          tag_name: v${{ env.TAPDECK_VERSION_NAME }}
+          name: TapDeck ${{ env.TAPDECK_VERSION_NAME }}
+          target_commitish: ${{ github.sha }}
+          body_path: artifacts/notes.md
+          files: artifacts/TapDeck.apk
           make_latest: true

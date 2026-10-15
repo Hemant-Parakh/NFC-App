@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, Upload, Trash2, ChevronRight, Moon, Check, AlertTriangle, Users } from 'lucide-react'
 import ProfileAvatar from '../components/ProfileAvatar.jsx'
+import { UpdateSettings } from '../components/UpdateCard.jsx'
 import { exportData, importData, clearAll } from '../utils/storage.js'
 import { accentHex } from '../utils/helpers.js'
 
@@ -34,7 +35,7 @@ function SettingRow({ icon: Icon, iconColor = '#8899AA', label, sublabel, onClic
   )
 }
 
-export default function SettingsScreen({ decks, profile, profiles, onOpenProfiles, onDataChanged }) {
+export default function SettingsScreen({ decks, profile, profiles, onOpenProfiles, onDataChanged, updater }) {
   const [toast, setToast] = useState(null)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const fileRef = useRef()
@@ -136,6 +137,12 @@ export default function SettingsScreen({ decks, profile, profiles, onOpenProfile
         </div>
       </motion.button>
 
+      {/* App updates */}
+      <SectionTitle>App updates</SectionTitle>
+      <div className="mb-6">
+        <UpdateSettings updater={updater} accent={accent} />
+      </div>
+
       {/* Appearance */}
       <SectionTitle>Appearance</SectionTitle>
       <div className="mb-6">
@@ -217,7 +224,7 @@ export default function SettingsScreen({ decks, profile, profiles, onOpenProfile
         </div>
         <p className="font-bold text-[17px]" style={{ color: '#EEF3FF' }}>TapDeck</p>
         <p className="text-[13px] mt-0.5" style={{ color: '#4A5568' }}>One tap. Right routine.</p>
-        <p className="text-[12px] mt-3" style={{ color: '#3D5066' }}>Version 1.1.0</p>
+        <p className="text-[12px] mt-3" style={{ color: '#3D5066' }}>{updater.current.name === 'dev' ? 'Development build' : `Version ${updater.current.name}`}</p>
         <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: '#3D5066' }}>
           Everything stays on your device. No accounts, no sync, no tracking.
         </p>

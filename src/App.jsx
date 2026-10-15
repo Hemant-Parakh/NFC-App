@@ -11,6 +11,7 @@ import ShortcutsScreen from './screens/ShortcutsScreen.jsx'
 import SettingsScreen from './screens/SettingsScreen.jsx'
 import { useProfiles } from './hooks/useProfiles.js'
 import { useDecks, copyDeckToProfile } from './hooks/useDecks.js'
+import { useUpdater } from './hooks/useUpdater.js'
 import { loadDecks } from './utils/storage.js'
 import { accentHex } from './utils/helpers.js'
 
@@ -24,6 +25,7 @@ export default function App() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [toast, setToast] = useState(null)
 
+  const updater = useUpdater()
   const profilesApi = useProfiles()
   const { profiles, activeProfile } = profilesApi
   const { decks, getDeck, createDeck, updateDeck, deleteDeck, touchDeck, toggleFavorite } =
@@ -112,6 +114,7 @@ export default function App() {
           profile={activeProfile}
           profileCount={profiles.length}
           onOpenProfiles={openProfiles}
+          updater={updater}
         />
       )
     }
@@ -125,6 +128,7 @@ export default function App() {
           profiles={profiles}
           onOpenProfiles={openProfiles}
           onDataChanged={handleDataChanged}
+          updater={updater}
         />
       )
     }
@@ -148,7 +152,7 @@ export default function App() {
         />
       )
     }
-    return <HomeScreen decks={decks} navigate={navigate} touchDeck={touchDeck} profile={activeProfile} profileCount={profiles.length} onOpenProfiles={openProfiles} />
+    return <HomeScreen decks={decks} navigate={navigate} touchDeck={touchDeck} profile={activeProfile} profileCount={profiles.length} onOpenProfiles={openProfiles} updater={updater} />
   }
 
   const showNav = !screen.startsWith('deck/') && !screen.startsWith('edit/') && screen !== 'create'

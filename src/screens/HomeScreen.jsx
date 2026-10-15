@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Plus, Pin, ArrowRight } from 'lucide-react'
 import DeckCard from '../components/DeckCard.jsx'
 import ProfileAvatar from '../components/ProfileAvatar.jsx'
+import { UpdateBanner } from '../components/UpdateCard.jsx'
 import SectionLabel from '../components/SectionLabel.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import { getGreeting, accentHex } from '../utils/helpers.js'
@@ -65,7 +66,7 @@ function ShelfCard({ deck, onClick }) {
   )
 }
 
-export default function HomeScreen({ decks, navigate, touchDeck, profile, profileCount = 1, onOpenProfiles }) {
+export default function HomeScreen({ decks, navigate, touchDeck, profile, profileCount = 1, onOpenProfiles, updater }) {
   const greeting = getGreeting()
   const accent = accentHex(profile?.color)
   const showName = profile?.name && profile.name !== 'You'
@@ -137,6 +138,8 @@ export default function HomeScreen({ decks, navigate, touchDeck, profile, profil
         </motion.button>
        </div>
       </motion.div>
+
+      {updater && <UpdateBanner updater={updater} accent={accent} />}
 
       {/* ── Pinned shelf ── */}
       {favorites.length > 0 && (

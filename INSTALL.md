@@ -1,98 +1,72 @@
-# Install TapDeck on your Pixel 10 Pro
+# Install TapDeck on your Pixel
 
-TapDeck runs as a **self-contained Android app**. The whole web app is bundled inside the APK, so once installed there's no server, no internet connection, no accounts — everything works fully offline on your phone. All your decks are stored locally.
-
-There are three install paths. Pick whichever is easiest for you.
+TapDeck is a self-contained Android app. The whole web app is bundled inside the APK, so there's no server and no account, and all decks stay on your phone. The only network request it makes is a check for new versions of itself, sent to this repository's GitHub Releases.
 
 ---
 
-## Path A — Download the prebuilt APK (no developer tools needed) ✅
+## First install
 
-This is the easiest. GitHub Actions builds an APK automatically every time the repo is updated.
+1. Open this repo's **Releases** page and download `TapDeck.apk` from the latest release.
+2. On your Pixel, tap the file. If Android asks, allow **Install unknown apps** for the app you opened it from (Files, Chrome, Drive…).
+3. Tap **Install**.
 
-### Steps
+> Builds from before v1.2 were signed with a throwaway key, so Android can't update them. Uninstall that old TapDeck once before installing this one. After that, every update installs over the top and keeps your decks.
 
-1. Open the repository on GitHub → **Releases** tab → grab the latest `TapDeck-debug.apk`.
-   - Or: **Actions** tab → click the most recent successful build → scroll to **Artifacts** → download `TapDeck-debug-apk.zip` → unzip it.
-2. Transfer the APK to your Pixel 10 Pro (USB cable, Google Drive, email, AirDrop-equivalent — anything works).
-3. On your Pixel, tap the APK file.
-4. Android will ask you to enable **"Install unknown apps"** for the app you're opening it from (Files, Drive, Chrome, etc.). Tap **Settings** → enable the toggle → go back.
-5. Tap **Install**. Done — TapDeck is now a real installed app with its own icon.
+## Updates
 
-No Play Store account, no hosting, no developer setup needed.
+TapDeck checks for a new release when you open it (at most every 3 hours).
+
+1. An **Update available** card appears on Home, showing what's new. **Settings → App updates** also has a manual "Check for updates" button.
+2. Tap **Update now**. The first time, Android asks you to allow TapDeck to install apps; turn it on, come back and tap Update again.
+3. The APK downloads inside the app, then Android shows **Update TapDeck?**. Tap **Update**.
+
+Android always asks for that one confirmation for sideloaded apps; there's no way to skip it. Your profiles and decks are kept.
+
+"Later" hides the card until a newer version comes out.
 
 ---
 
-## Path B — Build the APK locally (Android Studio)
+## How releases are made
 
-If you want to modify the app and build your own APK.
+Every push runs `.github/workflows/build-apk.yml`:
 
-### Prerequisites
-- Node.js 20+
-- Android Studio (download from developer.android.com/studio) — it bundles the Android SDK
-- Java 17 (Android Studio brings its own copy)
+- The version is `1.2.<run number>`, so each build is newer than the last.
+- The APK is signed with `android/app/tapdeck-release.p12`. That key file is locked with a password stored only in the **`TAPDECK_KEYSTORE_PASSWORD`** repository secret. Without the password, the file is useless.
+- Pushes to the repo's **default branch** publish a GitHub Release (`v1.2.N`, notes taken from the commit message). The app updates from that release.
 
-### Steps
+### One-time setup: the signing secret
+
+GitHub → this repo → **Settings → Secrets and variables → Actions → New repository secret**
+
+- Name: `TAPDECK_KEYSTORE_PASSWORD`
+- Value: the password you were given when the key was created
+
+Keep a copy of the password somewhere safe, such as a password manager. If it's lost, a new key has to be made, and you'd need to uninstall and reinstall TapDeck once.
+
+---
+
+## Build locally (optional)
 
 ```bash
-git clone <repo-url>
-cd NFC-App
 npm install
 npm run build
 npx cap sync android
-npm run android:open       # opens Android Studio
+npm run android:open      # Android Studio → Run
 ```
 
-In Android Studio:
-1. Wait for Gradle sync to finish (first time only — takes a few minutes).
-2. Plug your Pixel in via USB. Enable Developer Options → USB Debugging on your phone if you haven't already (Settings → About phone → tap Build number 7 times → Developer options → enable USB debugging).
-3. Click ▶ **Run** → pick your Pixel → app installs and launches.
-
-To build a standalone APK without USB:
-- **Build** menu → **Build Bundle(s) / APK(s)** → **Build APK(s)** → wait → click **locate** in the toast → grab the APK file → copy to phone → install.
-
----
-
-## Path C — Build the APK locally without Android Studio (CLI only)
-
-Faster than Path B if you've already got the Android SDK installed (e.g. via `apt install android-sdk` or the command-line tools).
+For an APK that can update your installed app, sign it with the same key:
 
 ```bash
-export ANDROID_SDK_ROOT=/path/to/android-sdk
-npm install
-npm run build
-npx cap sync android
-cd android
-./gradlew assembleDebug
-# APK appears at android/app/build/outputs/apk/debug/app-debug.apk
+export TAPDECK_KEYSTORE_PASSWORD=...   # same as the GitHub secret
+export TAPDECK_VERSION_CODE=9999 TAPDECK_VERSION_NAME=1.2.9999
+cd android && ./gradlew assembleRelease
+# → android/app/build/outputs/apk/release/app-release.apk
 ```
-
-Then transfer that APK to your phone and install as in Path A step 3–5.
-
----
-
-## What you get
-
-Once installed:
-- Real Android app with its own icon (stacked-cards design)
-- Adaptive icon — works correctly with Material You theming on Pixel
-- Full-screen launch (no browser chrome)
-- App shortcuts: long-press the home icon for "New deck" / "All decks"
-- All data stored locally on the device — no accounts, no sync, no tracking
-- Works completely offline
-
-## Updating
-
-Every time the repo is updated, a fresh `TapDeck-debug.apk` shows up on the Releases page. Just download and install over the existing app — your data is preserved.
 
 ## Troubleshooting
 
-**"App not installed" error**
-- Make sure you uninstalled any previous version first if you switched signing keys.
-- Check Settings → Apps → Special access → Install unknown apps → enable for your browser/Files app.
+**"App not installed as package conflicts with an existing package"**: the installed copy was signed with a different key (any build before v1.2). Uninstall it once, then install the latest release.
 
-**Icon looks like a generic Android one**
-- Force-restart launcher (clear cache for "Pixel Launcher") or reboot the phone. The first time the adaptive icon takes a few seconds to register.
+**The Update button opens a settings screen**: that's Android's one-time "Allow from this source" permission for TapDeck. Turn it on and go back.
 
-**App won't open / shows blank screen**
-- This shouldn't happen, but if it does, uninstall + reinstall. Web assets are bundled in the APK, so there's nothing to debug network-wise.
+**No update card appears**: open Settings → App updates → Check for updates. The check needs an internet connection; everything else works offline.
